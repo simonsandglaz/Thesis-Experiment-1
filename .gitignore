@@ -45,3 +45,22 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
+
+# LSL App for BioSemi
+./BioSemi
+
+# EEG Recordings
+./experiment_data
+
+#headmodel
+./headmodel
+
+#MATLAB model stuff
+#./average_subject.mri
+./headmodel.mat
+./mri.mat
+./mri_mesh.mat
+./reslice.mat
+./segmentedmri.mat
+./segmentedmri_bsc.mat
+./segmentedmri_resliced.mat
