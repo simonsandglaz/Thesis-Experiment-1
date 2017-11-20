@@ -36,12 +36,12 @@ while True:
     # make a new random 8-channel sample; this is converted into a
     # pylsl.vectorf (the data type that is expected by push_sample)
     alpha = np.sin(2*np.pi*10 * (i/125))*40
-    beta = np.sin(2*np.pi*20 * (i/125))*10
-    delta = np.sin(2*np.pi*2 * (i/125))*4
-    gamma = np.sin(2*np.pi*35 * (i/125))*20
-    theta = np.sin(2*np.pi*6 * (i/125))*20
+    beta = np.sin(2*np.pi*20 * (i/125))*5
+    delta = np.sin(2*np.pi*2 * (i/125))*10
+    gamma = np.sin(2*np.pi*35 * (i/125))*4
+    theta = np.sin(2*np.pi*6 * (i/125))*3
     mysample = [rand(), rand(), rand(), rand(), rand(), rand(), rand(), rand(), rand(), rand(), rand(), rand(), rand(), rand(), rand(), rand()]
-    mysample = map(lambda sample: sample*50 - 25 + alpha + beta + delta + gamma + theta, mysample)
+    mysample = map(lambda sample: (sample*80 - 40 + alpha + beta + delta + gamma + theta), mysample)
     # mysample = map(lambda sample: alpha + beta, mysample)
 
     # now send it and wait for a bit

@@ -47,13 +47,10 @@ Temporary Items
 .apdisk
 
 # LSL App for BioSemi
-./BioSemi
+./BioSemi/
 
 # EEG Recordings
-./experiment_data
-
-#headmodel
-./headmodel
+experiment_data
 
 #MATLAB model stuff
 #./average_subject.mri
