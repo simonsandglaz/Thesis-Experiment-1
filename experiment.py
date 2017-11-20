@@ -124,30 +124,30 @@ def main():
     #     stimuli_index += 1
 
     # 3. Meditation with real-time feedback (4 runs, 1.5 minutes each)
-    for i in range(3):
-        baseline, ipaf, eeg, events = show_baseline_with_graph(win, inlet, outlet, priming_stimuli[stimuli_index][0])
-        save_edf(eeg, events, subject_id, 2, i, 'baseline')
-
-        sham_stimuli = []
-        if expInfo["group"] == "sham":
-            sham_stimuli, feedback_values = stimuli_from_eeg(win, subject_id, 2, i)
-
-        message1 = visual.TextStim(win, pos=[0, +40], text='Please perform the instructed meditation practice', height=text_height)
-        message2 = visual.TextStim(win, pos=[0, -40], text="Press a key when ready.", height=text_height)
-        message1.draw()
-        message2.draw()
-        win.flip()
-        event.waitKeys()
-
-        if expInfo["group"] == "sham":
-            eeg, events, feedback_stimuli = show_sham_feedback(win, inlet, outlet, sham_stimuli, 5400)
-        else:
-            eeg, events, feedback_stimuli, feedback_values = show_neurofeedback(win, inlet, outlet, baseline, ipaf)
-        save_edf(eeg, events, subject_id, 2, i, 'trial')
-        show_run_feedback_questions(win, feedback_stimuli, feedback_values, subject_id, 2, i)
-        if i == 3:
-            show_final_feedback_questions(win, subject_id, 2, i)
-        stimuli_index += 1
+    # for i in range(3):
+    #     baseline, ipaf, eeg, events = show_baseline_with_graph(win, inlet, outlet, priming_stimuli[stimuli_index][0])
+    #     save_edf(eeg, events, subject_id, 2, i, 'baseline')
+    #
+    #     sham_stimuli = []
+    #     if expInfo["group"] == "sham":
+    #         sham_stimuli, feedback_values = stimuli_from_eeg(win, subject_id, 2, i)
+    #
+    #     message1 = visual.TextStim(win, pos=[0, +40], text='Please perform the instructed meditation practice', height=text_height)
+    #     message2 = visual.TextStim(win, pos=[0, -40], text="Press a key when ready.", height=text_height)
+    #     message1.draw()
+    #     message2.draw()
+    #     win.flip()
+    #     event.waitKeys()
+    #
+    #     if expInfo["group"] == "sham":
+    #         eeg, events, feedback_stimuli = show_sham_feedback(win, inlet, outlet, sham_stimuli, 5400)
+    #     else:
+    #         eeg, events, feedback_stimuli, feedback_values = show_neurofeedback(win, inlet, outlet, baseline, ipaf)
+    #     save_edf(eeg, events, subject_id, 2, i, 'trial')
+    #     show_run_feedback_questions(win, feedback_stimuli, feedback_values, subject_id, 2, i)
+    #     if i == 3:
+    #         show_final_feedback_questions(win, subject_id, 2, i)
+    #     stimuli_index += 1
 
     # 4. "Free-play" session. Participants are allowed to experiment with the feedback, using strategies of their own choosing. (2 runs, 7 minutes each).
     for i in range(2):
@@ -488,23 +488,13 @@ def show_neurofeedback(win, inlet, outlet, baseline, ipaf):
         if fixation_length <= frameN < neurofeedback_length + fixation_length:
             buffer_alpha_powers = map(lambda channel: eeg_power(channel, ipaf), neurofeedback_eeg_buffer)
             alpha_power = np.mean(buffer_alpha_powers)
-            if artifact_length_remaining == 0:
-                if alpha_power >= baseline * 2.5 and len(alpha_powers) > 0:  # eye-blink artifact, so just ignore
-                    print("eye blink")
-                    alpha_powers.append(alpha_powers[-1])
-                    artifact_length_remaining = 60
-                    events.append(EEGEvent("eyeblink_artifact", trialClock.getTime(), alpha_power))
-                else:
-                    alpha_powers.append(alpha_power)
-            else:
-                artifact_length_remaining -= 1
-                alpha_powers.append(alpha_powers[-1])
+            alpha_powers.append(alpha_power)
 
             if frameN % frames_per_bar == 0:  # make a new stimulus bar every frames_per_bar frames
                 # use gaussian smoothed alpha power to determine neurofeedback value
                 smoothed_alpha_powers = filters.gaussian_filter1d(alpha_powers[len(alpha_powers) - smoothing_window_size:], 1)
-                neurofeedback_value = ((smoothed_alpha_powers[len(smoothed_alpha_powers)/2] / baseline) - 1) * 100 # smoothed
-                # neurofeedback_value = ((alpha_powers[-1] / baseline) - 1) * 100 #unsmoothed
+                # neurofeedback_value = ((smoothed_alpha_powers[len(smoothed_alpha_powers)/2] / baseline) - 1) * 100 # smoothed
+                neurofeedback_value = ((alpha_powers[-1] / baseline) - 1) * 100 #unsmoothed
 
                 bar = ((frameN - 120) / frames_per_bar)  # the nth bar of the feedback
                 total_bars = ((neurofeedback_length - 120) / frames_per_bar)
@@ -707,8 +697,8 @@ def show_neurofeedback_free_play(win, inlet, outlet, baseline, ipaf):
 
                 vertices = []
                 vertices.append([(feedback_area_width / 2) - bar_width, 0])
-                vertices.append([(feedback_area_width / 2) + bar_width, 0])
-                vertices.append([(feedback_area_width / 2) + bar_width, neurofeedback_value])
+                vertices.append([(feedback_area_width / 2), 0])
+                vertices.append([(feedback_area_width / 2), neurofeedback_value])
                 vertices.append([(feedback_area_width / 2) - bar_width, neurofeedback_value])
 
                 neurofeedback_stimulus = visual.ShapeStim(
@@ -718,8 +708,11 @@ def show_neurofeedback_free_play(win, inlet, outlet, baseline, ipaf):
                     fillColor="white"
                 )
 
-                for index, stimulus in enumerate(neurofeedback_stimuli): # shift all existing stimuli to the left
-                    neurofeedback_stimuli[index].vertices = map(lambda vertices: [vertices[0] - bar_width, vertices[1]], stimulus.vertices)
+                # for index, stimulus in enumerate(neurofeedback_stimuli): # shift all existing stimuli to the left
+                #     neurofeedback_stimuli[index].vertices = map(lambda vertices: [vertices[0] - bar_width, vertices[1]], stimulus.vertices)
+                for stimulus in neurofeedback_stimuli:  # shift and scale all existing stimuli to the down to make room for questions
+                    stimulus.pos -= (bar_width, 0)
+
                 if len(neurofeedback_stimuli) == total_bars: # pop off the first bar (leftmost)
                     neurofeedback_stimuli = neurofeedback_stimuli[1:]
                 neurofeedback_stimuli.append(neurofeedback_stimulus)
