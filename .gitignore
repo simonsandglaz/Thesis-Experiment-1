@@ -50,7 +50,7 @@ Temporary Items
 ./BioSemi/
 
 # EEG Recordings
-experiment_data
+experiment_data/
 
 #MATLAB model stuff
 #./average_subject.mri

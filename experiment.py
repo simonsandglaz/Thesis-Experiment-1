@@ -19,11 +19,11 @@ import matlab.engine
 eng = matlab.engine.start_matlab()
 
 sample_rate = 125 # 125Hz in 16 channel mode for openBCI
-# window_x = 3840
-# window_y = 2160
+window_x = 3840
+window_y = 2160
 
-window_x = 1920
-window_y = 1080
+# window_x = 1920
+# window_y = 1080
 
 text_height = 28
 
@@ -94,7 +94,7 @@ def main():
     stimuli_index = 0
 
 
-    # 1. Meditation without feedback (2 runs, 4 minutes each)
+    # # 1. Meditation without feedback (2 runs, 4 minutes each)
     # for i in range(2):
     #     baseline, ipaf, eeg, events = show_baseline(win, inlet, outlet, priming_stimuli[stimuli_index][0])
     #     save_edf(eeg, events, subject_id, 0, i, 'baseline')
@@ -103,7 +103,7 @@ def main():
     #
     #     show_meditation_only_questions(win, subject_id, 0, i)
     #     stimuli_index += 1
-
+    # #
     # 2. Meditation with offline feedback (feedback graph shown offline after each run; 4 runs, 1.5 minutes each)
     # for i in range(3):
     #     baseline, ipaf, eeg, events = show_baseline_with_graph(win, inlet, outlet, priming_stimuli[stimuli_index][0])
@@ -124,33 +124,33 @@ def main():
     #     stimuli_index += 1
 
     # 3. Meditation with real-time feedback (4 runs, 1.5 minutes each)
-    # for i in range(3):
-    #     baseline, ipaf, eeg, events = show_baseline_with_graph(win, inlet, outlet, priming_stimuli[stimuli_index][0])
-    #     save_edf(eeg, events, subject_id, 2, i, 'baseline')
-    #
-    #     sham_stimuli = []
-    #     if expInfo["group"] == "sham":
-    #         sham_stimuli, feedback_values = stimuli_from_eeg(win, subject_id, 2, i)
-    #
-    #     message1 = visual.TextStim(win, pos=[0, +40], text='Please perform the instructed meditation practice', height=text_height)
-    #     message2 = visual.TextStim(win, pos=[0, -40], text="Press a key when ready.", height=text_height)
-    #     message1.draw()
-    #     message2.draw()
-    #     win.flip()
-    #     event.waitKeys()
-    #
-    #     if expInfo["group"] == "sham":
-    #         eeg, events, feedback_stimuli = show_sham_feedback(win, inlet, outlet, sham_stimuli, 5400)
-    #     else:
-    #         eeg, events, feedback_stimuli, feedback_values = show_neurofeedback(win, inlet, outlet, baseline, ipaf)
-    #     save_edf(eeg, events, subject_id, 2, i, 'trial')
-    #     show_run_feedback_questions(win, feedback_stimuli, feedback_values, subject_id, 2, i)
-    #     if i == 3:
-    #         show_final_feedback_questions(win, subject_id, 2, i)
-    #     stimuli_index += 1
+    for i in range(3):
+        baseline, ipaf, eeg, events = show_baseline_with_graph(win, inlet, outlet, priming_stimuli[stimuli_index][0])
+        save_edf(eeg, events, subject_id, 2, i, 'baseline')
+
+        sham_stimuli = []
+        if expInfo["group"] == "sham":
+            sham_stimuli, feedback_values = stimuli_from_eeg(win, subject_id, 2, i)
+
+        message1 = visual.TextStim(win, pos=[0, +40], text='Please perform the instructed meditation practice', height=text_height)
+        message2 = visual.TextStim(win, pos=[0, -40], text="Press a key when ready.", height=text_height)
+        message1.draw()
+        message2.draw()
+        win.flip()
+        event.waitKeys()
+
+        if expInfo["group"] == "sham":
+            eeg, events, feedback_stimuli = show_sham_feedback(win, inlet, outlet, sham_stimuli, 5400)
+        else:
+            eeg, events, feedback_stimuli, feedback_values = show_neurofeedback(win, inlet, outlet, baseline, ipaf)
+        save_edf(eeg, events, subject_id, 2, i, 'trial')
+        show_run_feedback_questions(win, feedback_stimuli, feedback_values, subject_id, 2, i)
+        if i == 3:
+            show_final_feedback_questions(win, subject_id, 2, i)
+        stimuli_index += 1
 
     # 4. "Free-play" session. Participants are allowed to experiment with the feedback, using strategies of their own choosing. (2 runs, 7 minutes each).
-    for i in range(2):
+    for i in range(1):
         baseline, ipaf, eeg, events = show_baseline_with_graph(win, inlet, outlet, priming_stimuli[stimuli_index][0])
         save_edf(eeg, events, subject_id, 3, i, 'baseline')
 
@@ -209,8 +209,7 @@ def main():
 def show_baseline(win, inlet, outlet, priming_stimulus):
 
     # show some priming stimuli while recording baseline data
-    priming_length = 1800 # 30 seconds
-    # priming_length = 900
+    priming_length = 1200 # 20 seconds
     fixation_length = 60 # 1 second
     stimulus_length = 180 # 3 seconds
     artifact_length_remaining = 0
@@ -287,7 +286,7 @@ def show_baseline(win, inlet, outlet, priming_stimulus):
 def show_baseline_with_graph(win, inlet, outlet, priming_stimulus):
 
     # show some priming stimuli while recording baseline data
-    priming_length = 1800 # 30 seconds
+    priming_length = 1200 # 20 seconds
     # priming_length = 900
     fixation_length = 60 # 1 second
     stimulus_length = 180 # 3 seconds
@@ -333,6 +332,10 @@ def show_baseline_with_graph(win, inlet, outlet, priming_stimulus):
                               channels["AF3"],
                               channels["AF4"],
                               channels["Fz"]]
+
+    baseline_channels = [channels["Fp1"],
+                         channels["Fp2"],
+                         channels["Fpz"]]
 
     full_eeg = [[] for i in range(len(channels))]
     full_eeg_no_artifacts = [[] for i in range(len(channels))]
@@ -530,8 +533,7 @@ def show_offline_neurofeedback(win, inlet, outlet, baseline, ipaf):
                               channels["Fp2"],
                               channels["Fpz"],
                               channels["AF3"],
-                              channels["AF4"],
-                              channels["Fz"]]
+                              channels["AF4"]]
 
 
     neurofeedback_eeg_buffer = [[] for i in range(len(neurofeedback_channels))]
@@ -607,8 +609,7 @@ def show_neurofeedback_free_play(win, inlet, outlet, baseline, ipaf):
                               channels["Fp2"],
                               channels["Fpz"],
                               channels["AF3"],
-                              channels["AF4"],
-                              channels["Fz"]]
+                              channels["AF4"]]
 
 
     neurofeedback_eeg_buffer = [[] for i in range(len(neurofeedback_channels))]
@@ -623,6 +624,7 @@ def show_neurofeedback_free_play(win, inlet, outlet, baseline, ipaf):
 
     frames_per_bar = 60
     smoothing_window_size = 30
+    # neurofeedback_length = 50400 # 14 minutes for Bill Buxton Demo
     neurofeedback_length = 25200  # 7 minutes
     visible_neurofeedback_length = 1200
     fixation_length = 120
@@ -659,12 +661,6 @@ def show_neurofeedback_free_play(win, inlet, outlet, baseline, ipaf):
     win.setRecordFrameIntervals(True)
 
     for frameN in range(neurofeedback_length):
-        # t = trialClock.getTime()
-        # if t - lastFPSupdate > 1.0:
-        #     lastFPS = win.fps()
-        #     lastFPSupdate = t
-        # message.text = "%ifps, [Esc] to quit" % lastFPS
-        # message.draw()
 
         chunk, timestamp = inlet.pull_chunk()
         if len(neurofeedback_eeg_buffer[0]) + len(chunk) >= sample_rate:  # more than 1 second worth of samples in the buffer
@@ -1083,8 +1079,7 @@ def stimuli_from_eeg(win, subject_id, set, run):
                               channels["Fp2"],
                               channels["Fpz"],
                               channels["AF3"],
-                              channels["AF4"],
-                              channels["Fz"]]
+                              channels["AF4"]]
 
     ipaf = np.mean(map(lambda samples: individual_peak_alpha(samples), [baseline_eeg[i] for i in peak_alpha_channels]))
 
