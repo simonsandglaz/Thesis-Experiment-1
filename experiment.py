@@ -85,19 +85,22 @@ def main():
     expInfo['dateStr'] = data.getDateStr()  # add the current time
     expInfo['subject_id'] = expInfo['subject_id'] + 1
 
-    if "group" in expInfo.keys() and expInfo["group"] == "sham":
-        expInfo["group"] = "experiment"
-    else:
-        expInfo["group"] = "sham"
-    # expInfo["group"] = "experiment" #REMOVE THIS BEFORE RUNNING EXPERIMENT
-    print(expInfo["group"])
     # present a dialogue to change params
+    group = expInfo["group"]
+    expInfo["group"] = None
     dlg = gui.DlgFromDict(expInfo, title='Thesis Experiment 1', fixed=['dateStr'])
     if dlg.OK:
+        if expInfo['group'] == None:
+            print('group is none')
+            if "group" in expInfo.keys() and group == "sham":
+                expInfo["group"] = "experiment"
+            else:
+                expInfo["group"] = "sham"
+
         toFile('lastParams.test', expInfo)  # save params to file for next time
     else:
         core.quit()  # the user hit cancel so exit
-        
+
     inlet, outlet = connect_to_EEG()
 
     #read stimuli adjectives for baseline task
@@ -118,6 +121,7 @@ def main():
         core.quit()  # the user hit cancel so exit
 
     participant_info['dateStr'] = data.getDateStr()  # add the current time
+    participant_info['group'] = expInfo["group"]
     save_participant_details(participant_info, subject_id)
 
     further_instructions(win, 1)
@@ -734,7 +738,6 @@ def show_sham_neurofeedback_free_play(win, inlet, outlet, feedback_values):
 
     return full_eeg, events
 
-
 def show_sham_feedback(win, inlet, outlet, feedback_values):
     neurofeedback_length = 5400 # 1.5 minutes
     fixation_length = 120
@@ -767,7 +770,6 @@ def show_sham_feedback(win, inlet, outlet, feedback_values):
             line.draw()
 
         win.flip()
-
     return full_eeg, events, feedback_stimuli, feedback_values
 
 def show_meditation_only_questions(win, subject_id, set, run):
@@ -802,7 +804,6 @@ def show_meditation_only_questions(win, subject_id, set, run):
             writer.writerow([index, answer])
 
 def show_run_feedback_questions(win, neurofeedback_stimuli, neurofeedback_values, subject_id, set, run):
-
     answers = []
 
     neurofeedback_max = max(neurofeedback_values)
@@ -846,7 +847,6 @@ def show_run_feedback_questions(win, neurofeedback_stimuli, neurofeedback_values
                                                   labels=["Not at all", "Perfectly"],
                                                   scale=None,
                                                   pos=[0, 20])
-
 
     while feedback_direction_scale.noResponse or feedback_direction_confidence_scale.noResponse:
         feedback_direction_question.draw()
@@ -1198,7 +1198,7 @@ def neurofeedback_value(power_values, baseline):
     smoothed_alpha_powers = filters.gaussian_filter1d(power_values[len(power_values) - smoothing_window_size:], 1)
     feedback_value = ((smoothed_alpha_powers[len(smoothed_alpha_powers) / 2] / baseline) - 1) * 100
     if feedback_value > 250: # Cap feedback value at 250% of baseline, since those are certainly artifacts
-        feedback_value = 250
+        feedback_value = 250.0
     return feedback_value
 
 def connect_to_EEG():
@@ -1242,9 +1242,9 @@ def save_participant_details(data, subject_id):
     with open('experiment_data/subject_{0}/participant_info.csv'.format(subject_id), 'wb') as csvfile:
         writer = csv.writer(csvfile, delimiter=',',
                             quotechar="|", quoting=csv.QUOTE_MINIMAL)
-        writer.writerow(["Age", "Handedness", "Gender", 'Sex', "dateStr"])  # header row
+        writer.writerow(["Age", "Handedness", "Gender", 'Sex', "dateStr", 'group'])  # header row
         writer.writerow(
-            [data['age'], data['handedness'], data['gender'], data['sex'], data['dateStr']])
+            [data['age'], data['handedness'], data['gender'], data['sex'], data['dateStr'], data['group']])
 
 def save_edf(data, events, subject_id, set, run, type):
     path = "experiment_data/subject_{0}/set_{1}/run_{2}/{3}".format(subject_id, set, run, type)
